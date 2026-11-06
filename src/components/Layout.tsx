@@ -1,7 +1,11 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-export default function Layout() {
+type LayoutProps = {
+  children?: React.ReactNode
+}
+
+export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -27,7 +31,7 @@ export default function Layout() {
         </button>
       </aside>
       <main className="flex-1 p-8">
-        <Outlet />
+        {children || <Outlet />}
       </main>
     </div>
   )

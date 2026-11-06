@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function Routines() {
-  const [routines, setRoutines] = useState([])
+  const [routines, setRoutines] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function Glossary() {
-  const [terms, setTerms] = useState([])
+  const [terms, setTerms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

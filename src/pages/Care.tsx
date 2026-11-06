@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function Care() {
-  const [tips, setTips] = useState([])
+  const [tips, setTips] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
