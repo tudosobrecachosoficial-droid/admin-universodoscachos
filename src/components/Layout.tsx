@@ -14,23 +14,23 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <aside className="w-64 bg-purple-900 text-white p-4">
-        <h1 className="text-xl font-bold mb-8">Admin Cachos</h1>
-        <nav className="space-y-2">
-          <Link to="/" className="block py-2 px-4 rounded hover:bg-purple-800">Dashboard</Link>
-          <Link to="/produtos" className="block py-2 px-4 rounded hover:bg-purple-800">Produtos</Link>
-          <Link to="/blog" className="block py-2 px-4 rounded hover:bg-purple-800">Blog</Link>
-          <Link to="/glossario" className="block py-2 px-4 rounded hover:bg-purple-800">Glossário</Link>
-          <Link to="/quiz" className="block py-2 px-4 rounded hover:bg-purple-800">Quiz</Link>
-          <Link to="/rotinas" className="block py-2 px-4 rounded hover:bg-purple-800">Rotinas</Link>
-          <Link to="/cuidados" className="block py-2 px-4 rounded hover:bg-purple-800">Cuidados</Link>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6' }}>
+      <aside style={{ width: '256px', background: '#7c3aed', color: 'white', padding: '16px' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '32px' }}>Admin Cachos</h1>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Link to="/" style={{ display: 'block', padding: '8px 16px', borderRadius: '4px', color: 'white', textDecoration: 'none' }}>Dashboard</Link>
+          <Link to="/produtos" style={{ display: 'block', padding: '8px 16px', borderRadius: '4px', color: 'white', textDecoration: 'none' }}>Produtos</Link>
+          <Link to="/blog" style={{ display: 'block', padding: '8px 16px', borderRadius: '4px', color: 'white', textDecoration: 'none' }}>Blog</Link>
+          <Link to="/glossario" style={{ display: 'block', padding: '8px 16px', borderRadius: '4px', color: 'white', textDecoration: 'none' }}>Glossário</Link>
+          <Link to="/quiz" style={{ display: 'block', padding: '8px 16px', borderRadius: '4px', color: 'white', textDecoration: 'none' }}>Quiz</Link>
+          <Link to="/rotinas" style={{ display: 'block', padding: '8px 16px', borderRadius: '4px', color: 'white', textDecoration: 'none' }}>Rotinas</Link>
+          <Link to="/cuidados" style={{ display: 'block', padding: '8px 16px', borderRadius: '4px', color: 'white', textDecoration: 'none' }}>Cuidados</Link>
         </nav>
-        <button onClick={handleLogout} className="mt-8 w-full py-2 px-4 bg-red-600 rounded hover:bg-red-700">
+        <button onClick={handleLogout} style={{ marginTop: '32px', width: '100%', padding: '8px 16px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
           Sair
         </button>
       </aside>
-      <main className="flex-1 p-8">
+      <main style={{ flex: 1, padding: '32px' }}>
         {children || <Outlet />}
       </main>
     </div>
