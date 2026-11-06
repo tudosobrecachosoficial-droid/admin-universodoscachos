@@ -1,33 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Products from './pages/Products'
-import Posts from './pages/Posts'
-import PostForm from './pages/PostForm'
-import Glossary from './pages/Glossary'
-import Quiz from './pages/Quiz'
-import Routines from './pages/Routines'
-import Care from './pages/Care'
-import Layout from './components/Layout'
-
 function App() {
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6' }}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/produtos" element={<Layout><Products /></Layout>} />
-          <Route path="/blog" element={<Layout><Posts /></Layout>} />
-          <Route path="/blog/novo" element={<Layout><PostForm /></Layout>} />
-          <Route path="/blog/editar/:id" element={<Layout><PostForm /></Layout>} />
-          <Route path="/glossario" element={<Layout><Glossary /></Layout>} />
-          <Route path="/quiz" element={<Layout><Quiz /></Layout>} />
-          <Route path="/rotinas" element={<Layout><Routines /></Layout>} />
-          <Route path="/cuidados" element={<Layout><Care /></Layout>} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </BrowserRouter>
+    <div style={{ padding: '20px', fontSize: '24px', color: 'purple' }}>
+      <h1>Admin Cachos - Teste</h1>
+      <p>Se você está vendo isso, o React está funcionando!</p>
     </div>
   )
 }
