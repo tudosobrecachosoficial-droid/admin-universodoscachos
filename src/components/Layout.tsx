@@ -1,5 +1,6 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useState, useEffect } from 'react'
 
 type LayoutProps = {
   children?: React.ReactNode
@@ -8,6 +9,15 @@ type LayoutProps = {
 export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode')
+    return saved ? JSON.parse(saved) : false
+  })
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode))
+    document.body.style.background = darkMode ? '#111827' : '#f9fafb'
+  }, [darkMode])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -75,9 +85,40 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         <button
+          onClick={() => setDarkMode(!darkMode)}
+          style={{
+            marginTop: '16px',
+            width: '100%',
+            padding: '12px 16px',
+            background: 'rgba(255, 255, 255, 0.15)',
+            color: 'white',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)'
+            e.currentTarget.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+            e.currentTarget.style.transform = 'translateY(0)'
+          }}
+        >
+          <span>{darkMode ? '☀️' : '🌙'}</span> {darkMode ? 'Modo Claro' : 'Modo Escuro'}
+        </button>
+
+        <button
           onClick={handleLogout}
           style={{
-            marginTop: '24px',
+            marginTop: '8px',
             width: '100%',
             padding: '12px 16px',
             background: 'rgba(220, 38, 38, 0.9)',
