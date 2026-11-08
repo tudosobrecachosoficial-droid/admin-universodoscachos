@@ -56,81 +56,216 @@ export default function PostForm() {
   }
 
   return (
-    <div className="max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">{id ? 'Editar' : 'Novo'} Post</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div style={{ padding: '24px', maxWidth: '900px' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#1f2937', marginBottom: '4px' }}>
+          {id ? 'Editar' : 'Novo'} Post
+        </h1>
+        <p style={{ color: '#6b7280', fontSize: '14px' }}>
+          {id ? 'Atualize as informações do post' : 'Crie um novo artigo para o blog'}
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>
-          <label className="block text-sm font-medium mb-1">Título</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '14px' }}>Título</label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Título do artigo"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '2px solid #e5e7eb',
+              borderRadius: '8px',
+              fontSize: '16px',
+              outline: 'none',
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#7c3aed'
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)'
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#e5e7eb'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
             required
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-1">Slug</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '14px' }}>Slug</label>
           <input
             type="text"
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="titulo-do-artigo"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '2px solid #e5e7eb',
+              borderRadius: '8px',
+              fontSize: '16px',
+              outline: 'none',
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#7c3aed'
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)'
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#e5e7eb'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
             required
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-1">Categoria</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '14px' }}>Categoria</label>
           <input
             type="text"
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Categoria do artigo"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '2px solid #e5e7eb',
+              borderRadius: '8px',
+              fontSize: '16px',
+              outline: 'none',
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#7c3aed'
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)'
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#e5e7eb'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-1">Resumo</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '14px' }}>Resumo</label>
           <textarea
             value={formData.excerpt}
             onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            rows={3}
+            placeholder="Breve resumo do artigo"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '2px solid #e5e7eb',
+              borderRadius: '8px',
+              fontSize: '16px',
+              outline: 'none',
+              transition: 'all 0.2s',
+              minHeight: '100px'
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#7c3aed'
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)'
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#e5e7eb'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-1">Conteúdo</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '14px' }}>Conteúdo</label>
           <RichTextEditor
             content={formData.content}
             onChange={(content) => setFormData({ ...formData, content })}
           />
         </div>
+
         <ImageUpload
           value={formData.image}
           onChange={(url) => setFormData({ ...formData, image: url })}
         />
-        <div className="flex items-center gap-2">
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
           <input
             type="checkbox"
             id="featured"
             checked={formData.featured}
             onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
           />
-          <label htmlFor="featured">Destaque</label>
+          <label htmlFor="featured" style={{ cursor: 'pointer', fontWeight: '500', color: '#374151' }}>Marcar como destaque</label>
         </div>
-        <div className="flex gap-2">
+
+        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
           <button
             type="submit"
             disabled={loading}
-            className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
+            style={{
+              padding: '12px 32px',
+              background: loading ? '#9ca3af' : '#7c3aed',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '16px',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.background = '#6d28d9'
+                e.currentTarget.style.transform = 'translateY(-1px)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.currentTarget.style.background = '#7c3aed'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }
+            }}
           >
-            {loading ? 'Salvando...' : 'Salvar'}
+            {loading ? (
+              <>
+                <span>⏳</span> Salvando...
+              </>
+            ) : (
+              <>
+                <span>💾</span> Salvar
+              </>
+            )}
           </button>
           <button
             type="button"
             onClick={() => navigate('/blog')}
-            className="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400"
+            style={{
+              padding: '12px 32px',
+              background: '#d1d5db',
+              color: '#374151',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '600',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#9ca3af'
+              e.currentTarget.style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#d1d5db'
+              e.currentTarget.style.transform = 'translateY(0)'
+            }}
           >
-            Cancelar
+            ❌ Cancelar
           </button>
         </div>
       </form>
