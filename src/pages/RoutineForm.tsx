@@ -1,56 +1,104 @@
-import { useState, useEffect } from 'react'
+/* oxlint-disable react(incompatible-library) */
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { getRecord, saveRecord } from '../lib/api'
 import ImageUpload from '../components/ImageUpload'
+import { toast } from '../lib/toast'
+
+const routineSchema = z.object({
+  day: z.string().trim().min(1, 'Informe o dia da rotina.'),
+  description: z.string().trim().min(1, 'Informe a descrição da rotina.'),
+  steps: z.array(z.string().trim().min(1)).min(1, 'Adicione pelo menos um passo.'),
+  image: z.string().default(''),
+})
+
+type RoutineFormValues = z.infer<typeof routineSchema>
 
 export default function RoutineForm() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({ day: '', description: '', steps: [], image: '' })
+  // oxlint-disable-next-line react(incompatible-library)
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<RoutineFormValues>({
+    resolver: zodResolver(routineSchema),
+    defaultValues: {
+      day: '',
+      description: '',
+      steps: [],
+      image: '',
+    },
+  })
 
-  useEffect(() => { if (id) loadRoutine() }, [id])
+  useEffect(() => {
+    if (!id) return
 
-  const loadRoutine = async () => {
-    const { data } = await supabase.from('routines').select('*').eq('id', id).single()
-    if (data) setFormData({
-      day: data.day || '',
-      description: data.description || '',
-      steps: Array.isArray(data.steps) ? data.steps : [],
-      image: data.image || ''
-    })
-  }
+    getRecord<RoutineFormValues>('routines', id)
+      .then((routine) => reset({
+        day: routine.day || '',
+        description: routine.description || '',
+        steps: Array.isArray(routine.steps) ? routine.steps.map((step) => String(step).trim()).filter(Boolean) : [],
+        image: routine.image || '',
+      }))
+      .catch((error: unknown) => toast.error(`Erro ao carregar rotina: ${error instanceof Error ? error.message : error}`))
+  }, [id, reset])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  const parseSteps = (value: string) => value.split(',').map((step) => step.trim()).filter(Boolean)
+
+  const onSubmit = async (formData: RoutineFormValues) => {
     try {
-      if (id) await supabase.from('routines').update(formData).eq('id', id)
-      else await supabase.from('routines').insert(formData)
+      await saveRecord('routines', formData, id)
+      toast.success(id ? 'Rotina atualizada com sucesso!' : 'Rotina criada com sucesso!')
       navigate('/rotinas')
-    } catch (error) { alert('Erro: ' + error) }
-    finally { setLoading(false) }
+    } catch (error) {
+      toast.error(`Erro ao salvar: ${error instanceof Error ? error.message : error}`)
+    }
   }
 
   return (
     <div style={{ maxWidth: '800px' }}>
       <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '24px' }}>{id ? 'Editar' : 'Nova'} Rotina</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Dia</label>
-          <input type="text" value={formData.day} onChange={(e) => setFormData({ ...formData, day: e.target.value })} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }} required />
+          <input
+            type="text"
+            {...register('day')}
+            style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
+          {errors.day && <p role="alert" style={{ color: '#dc2626', fontSize: '13px', marginTop: '4px' }}>{errors.day.message}</p>}
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Descrição</label>
-          <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', minHeight: '120px' }} required />
+          <textarea
+            {...register('description')}
+            style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', minHeight: '120px' }}
+          />
+          {errors.description && <p role="alert" style={{ color: '#dc2626', fontSize: '13px', marginTop: '4px' }}>{errors.description.message}</p>}
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Passos (separados por vírgula)</label>
-          <input type="text" value={formData.steps.join(', ')} onChange={(e) => setFormData({ ...formData, steps: e.target.value.split(',').map(s => s.trim()) })} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
+          <input
+            type="text"
+            value={(watch('steps') ?? []).join(', ')}
+            onChange={(e) => setValue('steps', parseSteps(e.target.value), { shouldDirty: true })}
+            style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
+          {errors.steps && <p role="alert" style={{ color: '#dc2626', fontSize: '13px', marginTop: '4px' }}>{errors.steps.message}</p>}
         </div>
-        <ImageUpload value={formData.image} onChange={(url) => setFormData({ ...formData, image: url })} />
+        <ImageUpload
+          value={watch('image') ?? ''}
+          onChange={(url) => setValue('image', url, { shouldDirty: true })}
+        />
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button type="submit" disabled={loading} style={{ padding: '8px 24px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}>{loading ? 'Salvando...' : 'Salvar'}</button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            style={{ padding: '8px 24px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: isSubmitting ? 0.5 : 1 }}
+          >
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
+          </button>
           <button type="button" onClick={() => navigate('/rotinas')} style={{ padding: '8px 24px', background: '#d1d5db', color: '#374151', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>
         </div>
       </form>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -9,11 +9,38 @@ export default function Login() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
+  useEffect(() => {
+    let isMounted = true
+
+    const verifySession = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (!isMounted) return
+
+      if (data.session) {
+        navigate('/')
+      }
+    }
+
+    verifySession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return
+      if (session) {
+        navigate('/')
+      }
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [navigate])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -24,7 +51,7 @@ export default function Login() {
     } else {
       navigate('/')
     }
-    
+
     setLoading(false)
   }
 

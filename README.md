@@ -31,6 +31,10 @@ Painel administrativo separado para gerenciar o conteúdo do site Universo dos C
 
 3. **Editar o arquivo `.env`** com suas credenciais do Supabase
 
+4. **Configurar o armazenamento de imagens:** crie um bucket público chamado `images` no Supabase Storage (ou informe outro nome em `VITE_SUPABASE_STORAGE_BUCKET`) e configure as políticas para permitir uploads aos usuários autenticados que administram o painel.
+
+O painel envia os arquivos ao bucket e salva a URL pública no registro. Não use uma chave `service_role` no frontend.
+
 ## 🎯 Funcionalidades
 
 - ✅ Dashboard com estatísticas
@@ -75,9 +79,10 @@ Acesse: http://localhost:5173
 
 ## 🔐 Segurança
 
-- Usa Service Role Key do Supabase
+- Usa apenas a chave pública/anon do Supabase no frontend
 - Autenticação via Supabase Auth
 - RLS policies no banco de dados
+- Service role key somente em ambiente server-side
 - Projeto separado do site público
 
 ## 📝 Estrutura
