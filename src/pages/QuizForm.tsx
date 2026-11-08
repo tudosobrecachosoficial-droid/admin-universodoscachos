@@ -12,7 +12,12 @@ export default function QuizForm() {
 
   const loadQuestion = async () => {
     const { data } = await supabase.from('quiz_questions').select('*').eq('id', id).single()
-    if (data) setFormData(data)
+    if (data) setFormData({
+      question: data.question || '',
+      options: Array.isArray(data.options) ? data.options : [],
+      correct: data.correct || 0,
+      explanation: data.explanation || ''
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

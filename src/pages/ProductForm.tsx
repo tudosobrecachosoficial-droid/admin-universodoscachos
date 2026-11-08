@@ -22,7 +22,14 @@ export default function ProductForm() {
 
   const loadProduct = async () => {
     const { data } = await supabase.from('products').select('*').eq('id', id).single()
-    if (data) setFormData(data)
+    if (data) setFormData({
+      name: data.name || '',
+      slug: data.slug || '',
+      categoryLabel: data.categoryLabel || '',
+      price: data.price || '',
+      featured: data.featured || false,
+      image: data.image || ''
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

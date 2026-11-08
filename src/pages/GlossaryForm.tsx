@@ -12,7 +12,11 @@ export default function GlossaryForm() {
 
   const loadTerm = async () => {
     const { data } = await supabase.from('glossary').select('*').eq('id', id).single()
-    if (data) setFormData(data)
+    if (data) setFormData({
+      term: data.term || '',
+      definition: data.definition || '',
+      category: data.category || ''
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

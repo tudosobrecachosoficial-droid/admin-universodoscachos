@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import RichTextEditor from '../components/RichTextEditor'
@@ -18,6 +18,24 @@ export default function PostForm() {
     image: '',
     featured: false
   })
+
+  useEffect(() => {
+    if (id) loadPost()
+  }, [id])
+
+  const loadPost = async () => {
+    const { data } = await supabase.from('posts').select('*').eq('id', id).single()
+    if (data) setFormData({
+      title: data.title || '',
+      slug: data.slug || '',
+      category: data.category || '',
+      author: data.author || 'Redação Universo dos Cachos',
+      excerpt: data.excerpt || '',
+      content: data.content || '',
+      image: data.image || '',
+      featured: data.featured || false
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

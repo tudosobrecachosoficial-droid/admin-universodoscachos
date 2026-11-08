@@ -13,7 +13,12 @@ export default function CareForm() {
 
   const loadTip = async () => {
     const { data } = await supabase.from('care_tips').select('*').eq('id', id).single()
-    if (data) setFormData(data)
+    if (data) setFormData({
+      num: data.num || '',
+      title: data.title || '',
+      text: data.text || '',
+      image: data.image || ''
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

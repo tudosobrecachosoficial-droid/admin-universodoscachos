@@ -13,7 +13,12 @@ export default function RoutineForm() {
 
   const loadRoutine = async () => {
     const { data } = await supabase.from('routines').select('*').eq('id', id).single()
-    if (data) setFormData(data)
+    if (data) setFormData({
+      day: data.day || '',
+      description: data.description || '',
+      steps: Array.isArray(data.steps) ? data.steps : [],
+      image: data.image || ''
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
