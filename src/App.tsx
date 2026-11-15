@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import ToastHost from './components/ToastHost'
+import { supabaseConfigError } from './lib/supabase'
 
 const Login = lazy(() => import('./pages/Login'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -28,7 +29,25 @@ const loadingView = (
   </div>
 )
 
+function ConfigErrorScreen() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: '24px' }}>
+      <div style={{ maxWidth: '560px', width: '100%', background: '#fff', borderRadius: '20px', border: '1px solid #e5e7eb', padding: '32px', boxShadow: '0 20px 60px rgba(15, 23, 42, 0.08)' }}>
+        <div style={{ fontSize: '42px', marginBottom: '12px' }}>⚠️</div>
+        <h1 style={{ margin: '0 0 12px', fontSize: '28px', color: '#111827' }}>Configuração do Supabase incompleta</h1>
+        <p style={{ margin: 0, color: '#4b5563', fontSize: '16px', lineHeight: 1.6 }}>
+          {supabaseConfigError?.message ?? 'Verifique as variáveis de ambiente do painel.'}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function App() {
+  if (supabaseConfigError) {
+    return <ConfigErrorScreen />
+  }
+
   return (
     <BrowserRouter>
       <ToastHost />
