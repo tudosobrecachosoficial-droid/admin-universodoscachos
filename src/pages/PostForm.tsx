@@ -8,6 +8,7 @@ import { getRecord, saveRecord } from '../lib/api'
 import { postSchema } from '../lib/schema'
 import { slugify, todayISO } from '../lib/slug'
 import ImageUpload from '../components/ImageUpload'
+import RichTextEditor from '../components/RichTextEditor'
 import { toast } from '../lib/toast'
 
 type PostFormValues = z.infer<typeof postSchema>
@@ -46,16 +47,41 @@ const normalizeProductSlugs = (value: string) => value
 
 const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length
 
-const readingTimeForContent = (sections: PostSection[] = []) => {
-  const totalWords = sections.reduce((sum, section) => {
+const escapeHtml = (value: string) => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;')
+
+const sectionsToHtml = (sections: PostSection[] = []) => sections.map((section) => {
+  const heading = section.heading.trim() ? `<h2>${escapeHtml(section.heading.trim())}</h2>` : ''
+  const paragraphs = section.paragraphs
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .join('')
+  const listItems = section.list
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join('')
+  const list = listItems ? `<ul>${listItems}</ul>` : ''
+  const quote = section.quote.trim() ? `<blockquote><p>${escapeHtml(section.quote.trim())}</p></blockquote>` : ''
+
+  return `${heading}${paragraphs}${list}${quote}`
+}).join('')
+
+const readingTimeForContent = (sections: PostSection[] = [], content = '') => {
+  const contentText = content.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ')
+  const text = contentText.trim() ? contentText : sections.reduce((sum, section) => {
     const paragraphs = section.paragraphs.join(' ')
     const list = section.list.join(' ')
     const quote = section.quote || ''
     const heading = section.heading || ''
-    return sum + countWords(`${heading} ${paragraphs} ${list} ${quote}`)
-  }, 0)
-
-  return Math.max(1, Math.round(totalWords / 200))
+    return `${sum} ${heading} ${paragraphs} ${list} ${quote}`
+  }, '')
+  return Math.max(1, Math.round(countWords(text) / 200))
 }
 
 export default function PostForm() {
@@ -77,6 +103,7 @@ export default function PostForm() {
       readingTime: 1,
       featured: false,
       excerpt: '',
+      content: '',
       image: '',
       sections: [createSection()],
       productSlugs: [],
@@ -86,6 +113,7 @@ export default function PostForm() {
 
   const titleValue = watch('title')
   const descriptionValue = watch('seoDescription') ?? ''
+  const contentValue = watch('content') ?? ''
   const sectionsValue = watch('sections') ?? []
   const authorValue = watch('author') ?? 'Redação Universo dos Cachos'
 
@@ -113,6 +141,7 @@ export default function PostForm() {
               quote: String(section?.quote ?? ''),
             }))
           : [createSection()]
+        const nextContent = String(post.content || sectionsToHtml(nextSections))
 
         reset({
           slug: String(post.slug ?? ''),
@@ -125,9 +154,10 @@ export default function PostForm() {
           tags: Array.isArray(post.tags) ? post.tags.map((tag) => String(tag)) : [],
           author: String(post.author ?? authorValue),
           date: String(post.date ?? todayISO()),
-          readingTime: Number(post.readingTime) || readingTimeForContent(nextSections),
+          readingTime: Number(post.readingTime) || readingTimeForContent(nextSections, nextContent),
           featured: Boolean(post.featured),
           excerpt: String(post.excerpt ?? ''),
+          content: nextContent,
           image: String(post.image ?? ''),
           sections: nextSections,
           productSlugs: Array.isArray(post.productSlugs) ? post.productSlugs.map((slug) => String(slug)) : [],
@@ -169,7 +199,7 @@ export default function PostForm() {
   }
 
   const handleAutoReadingTime = () => {
-    setValue('readingTime', readingTimeForContent(sectionsValue), { shouldDirty: true })
+    setValue('readingTime', readingTimeForContent(sectionsValue, contentValue), { shouldDirty: true })
   }
 
   const onSubmit = async (formData: PostFormValues) => {
@@ -180,6 +210,7 @@ export default function PostForm() {
         list: Array.isArray(section.list) ? section.list.map((item) => String(item ?? '').trim()).filter(Boolean) : [],
         quote: String(section.quote ?? '').trim(),
       }))
+      const normalizedContent = formData.content.trim()
 
       const normalizedData = {
         ...formData,
@@ -190,8 +221,9 @@ export default function PostForm() {
         productSlugs: normalizeProductSlugs((formData.productSlugs ?? []).join(', ')),
         author: formData.author.trim() || 'Redação Universo dos Cachos',
         date: formData.date || todayISO(),
-        readingTime: Number(formData.readingTime) || readingTimeForContent(normalizedSections),
+        readingTime: Number(formData.readingTime) || readingTimeForContent(normalizedSections, normalizedContent),
         excerpt: formData.excerpt.trim(),
+        content: normalizedContent,
         seoTitle: formData.seoTitle.trim(),
         seoDescription: formData.seoDescription.trim(),
         subtitle: formData.subtitle.trim(),
@@ -288,6 +320,15 @@ export default function PostForm() {
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Resumo do artigo</label>
           <textarea {...register('excerpt')} placeholder="Resumo rápido para listagem e prévias" style={{ ...fieldStyle, minHeight: '110px' }} />
           {errors.excerpt && <p role="alert" style={{ color: '#dc2626', fontSize: '13px', marginTop: '6px', marginBottom: 0 }}>{errors.excerpt.message}</p>}
+        </div>
+
+        <div>
+          <div style={{ marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontWeight: '700', color: '#374151', fontSize: '15px' }}>Texto completo do artigo</label>
+            <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '13px' }}>Escreva e formate o conteúdo que será exibido na página do artigo.</p>
+          </div>
+          <RichTextEditor content={contentValue} onChange={(content) => setValue('content', content, { shouldDirty: true, shouldValidate: true })} />
+          {errors.content && <p role="alert" style={{ color: '#dc2626', fontSize: '13px', marginTop: '6px', marginBottom: 0 }}>{errors.content.message}</p>}
         </div>
 
         <div>

@@ -40,6 +40,10 @@ export const postSchema = z.object({
   readingTime: z.number().int().nonnegative().default(0),
   featured: z.boolean().default(false),
   excerpt: z.string().trim().default(''),
+  content: z.string().trim().refine(
+    (content) => content.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;|&#xA0;/gi, ' ').trim().length > 0,
+    'Informe o conteúdo do artigo.',
+  ),
   image: z.string().trim().default(''),
   sections: z.array(z.object({
     heading: z.string().trim().default(''),
