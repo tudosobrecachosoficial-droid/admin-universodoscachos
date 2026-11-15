@@ -1,5 +1,5 @@
 /* oxlint-disable react(incompatible-library) */
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -96,7 +96,6 @@ export default function PostForm() {
       seoDescription: '',
       subtitle: '',
       category: '',
-      categorySlug: '',
       tags: [],
       author: 'Redação Universo dos Cachos',
       date: todayISO(),
@@ -150,7 +149,6 @@ export default function PostForm() {
           seoDescription: String(post.seoDescription ?? ''),
           subtitle: String(post.subtitle ?? ''),
           category: String(post.category ?? ''),
-          categorySlug: String(post.categorySlug ?? ''),
           tags: Array.isArray(post.tags) ? post.tags.map((tag) => String(tag)) : [],
           author: String(post.author ?? authorValue),
           date: String(post.date ?? todayISO()),
@@ -216,7 +214,6 @@ export default function PostForm() {
         ...formData,
         slug: slugify(formData.slug),
         category: formData.category.trim(),
-        categorySlug: formData.categorySlug || slugify(formData.category || formData.title),
         tags: normalizeTags((formData.tags ?? []).join(', ')),
         productSlugs: normalizeProductSlugs((formData.productSlugs ?? []).join(', ')),
         author: formData.author.trim() || 'Redação Universo dos Cachos',
@@ -238,11 +235,6 @@ export default function PostForm() {
       toast.error(`Erro ao salvar: ${error instanceof Error ? error.message : error}`)
     }
   }
-
-  const computedCategorySlug = useMemo(() => {
-    if (watch('categorySlug') && watch('categorySlug')?.trim()) return watch('categorySlug')
-    return slugify(watch('category') || watch('title') || '')
-  }, [watch])
 
   return (
     <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto' }}>
@@ -283,11 +275,6 @@ export default function PostForm() {
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Categoria</label>
             <input type="text" {...register('category')} placeholder="Beleza e rotina" style={fieldStyle} />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Slug da categoria</label>
-            <input type="text" value={computedCategorySlug} onChange={(event) => setValue('categorySlug', event.target.value, { shouldDirty: true })} placeholder="beleza-e-rotina" style={fieldStyle} />
           </div>
 
           <div>
