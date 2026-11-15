@@ -33,7 +33,6 @@ export const postSchema = z.object({
   seoDescription: z.string().trim().default(''),
   subtitle: z.string().trim().default(''),
   category: z.string().trim().default(''),
-  categorySlug: z.string().trim().default(''),
   tags: z.array(z.string().trim()).default([]),
   author: z.string().trim().default('Redação Universo dos Cachos'),
   date: z.string().trim().default(''),
