@@ -11,16 +11,24 @@ type PostRecord = {
   excerpt?: string
   author?: string
   featured?: boolean
+  published?: boolean
   image?: string
 }
 
-function PostTable({ posts, search, filter, navigate, onDeleteComplete }: { posts: PostRecord[]; search: string; filter: 'all' | 'featured'; navigate: ReturnType<typeof useNavigate>; onDeleteComplete: () => void }) {
+function PostTable({ posts, search, filter, navigate, onDeleteComplete }: { posts: PostRecord[]; search: string; filter: 'all' | 'featured' | 'published' | 'draft'; navigate: ReturnType<typeof useNavigate>; onDeleteComplete: () => void }) {
   const filteredPosts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
     return posts.filter((post) => {
-      const matchesFilter = filter === 'all' ? true : Boolean(post.featured)
-      if (!matchesFilter) return false
+      const matchesStatus = filter === 'all'
+        ? true
+        : filter === 'featured'
+          ? Boolean(post.featured)
+          : filter === 'published'
+            ? Boolean(post.published)
+            : !post.published
+
+      if (!matchesStatus) return false
 
       if (!normalizedSearch) return true
 
@@ -47,6 +55,7 @@ function PostTable({ posts, search, filter, navigate, onDeleteComplete }: { post
             <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Artigo</th>
             <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Categoria</th>
             <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resumo</th>
+            <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
             <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Destaque</th>
             <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ações</th>
           </tr>
@@ -70,6 +79,13 @@ function PostTable({ posts, search, filter, navigate, onDeleteComplete }: { post
               <td style={{ padding: '16px 20px', color: '#6b7280', fontSize: '14px' }}>{post.category || 'Geral'}</td>
               <td style={{ padding: '16px 20px', color: '#4b5563', maxWidth: '260px' }}>{post.excerpt ? post.excerpt.slice(0, 90) + (post.excerpt.length > 90 ? '...' : '') : 'Sem resumo'}</td>
               <td style={{ padding: '16px 20px' }}>
+                {post.published ? (
+                  <span style={{ padding: '4px 10px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontSize: '12px', fontWeight: '700' }}>Publicado</span>
+                ) : (
+                  <span style={{ padding: '4px 10px', background: '#fef3c7', color: '#92400e', borderRadius: '12px', fontSize: '12px', fontWeight: '700' }}>Rascunho</span>
+                )}
+              </td>
+              <td style={{ padding: '16px 20px' }}>
                 {post.featured ? (
                   <span style={{ padding: '4px 12px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>✓ Sim</span>
                 ) : (
@@ -91,7 +107,7 @@ function PostTable({ posts, search, filter, navigate, onDeleteComplete }: { post
 export default function Posts() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'featured'>('all')
+  const [filter, setFilter] = useState<'all' | 'published' | 'draft' | 'featured'>('all')
   const [posts, setPosts] = useState<PostRecord[]>([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
@@ -160,9 +176,11 @@ export default function Posts() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {[
           { key: 'all', label: 'Todos' },
+          { key: 'published', label: 'Publicados' },
+          { key: 'draft', label: 'Rascunhos' },
           { key: 'featured', label: 'Destaques' },
         ].map((option) => (
-          <button key={option.key} type="button" onClick={() => setFilter(option.key as 'all' | 'featured')} style={{ padding: '8px 14px', borderRadius: '999px', border: filter === option.key ? '1px solid #7c3aed' : '1px solid #e5e7eb', background: filter === option.key ? '#f5f3ff' : 'white', color: filter === option.key ? '#6d28d9' : '#4b5563', fontWeight: '700', cursor: 'pointer', boxShadow: filter === option.key ? '0 10px 22px rgba(124,58,237,0.12)' : 'none' }}>{option.label}</button>
+          <button key={option.key} type="button" onClick={() => setFilter(option.key as 'all' | 'published' | 'draft' | 'featured')} style={{ padding: '8px 14px', borderRadius: '999px', border: filter === option.key ? '1px solid #7c3aed' : '1px solid #e5e7eb', background: filter === option.key ? '#f5f3ff' : 'white', color: filter === option.key ? '#6d28d9' : '#4b5563', fontWeight: '700', cursor: 'pointer', boxShadow: filter === option.key ? '0 10px 22px rgba(124,58,237,0.12)' : 'none' }}>{option.label}</button>
         ))}
       </div>
 
