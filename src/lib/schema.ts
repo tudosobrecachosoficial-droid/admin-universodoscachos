@@ -50,7 +50,6 @@ export const postSchema = z.object({
     list: z.array(z.string().trim()).default([]),
     quote: z.string().trim().default(''),
   })).default([]),
-  productSlugs: z.array(z.string().trim()).default([]),
   published: z.boolean().default(false),
 })
 

@@ -40,11 +40,6 @@ const normalizeTags = (value: string) => value
   .map((item) => item.trim())
   .filter(Boolean)
 
-const normalizeProductSlugs = (value: string) => value
-  .split(',')
-  .map((item) => item.trim())
-  .filter(Boolean)
-
 const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length
 
 const escapeHtml = (value: string) => value
@@ -105,7 +100,6 @@ export default function PostForm() {
       content: '',
       image: '',
       sections: [createSection()],
-      productSlugs: [],
       published: false,
     },
   })
@@ -158,7 +152,6 @@ export default function PostForm() {
           content: nextContent,
           image: String(post.image ?? ''),
           sections: nextSections,
-          productSlugs: Array.isArray(post.productSlugs) ? post.productSlugs.map((slug) => String(slug)) : [],
           published: Boolean(post.published),
         })
       })
@@ -215,7 +208,6 @@ export default function PostForm() {
         slug: slugify(formData.slug),
         category: formData.category.trim(),
         tags: normalizeTags((formData.tags ?? []).join(', ')),
-        productSlugs: normalizeProductSlugs((formData.productSlugs ?? []).join(', ')),
         author: formData.author.trim() || 'Redação Universo dos Cachos',
         date: formData.date || todayISO(),
         readingTime: Number(formData.readingTime) || readingTimeForContent(normalizedSections, normalizedContent),
@@ -291,16 +283,9 @@ export default function PostForm() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Tags</label>
-            <input type="text" value={(watch('tags') ?? []).join(', ')} onChange={(event) => setValue('tags', normalizeTags(event.target.value), { shouldDirty: true })} placeholder="cachos, cabelo, rotina" style={fieldStyle} />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Produtos relacionados</label>
-            <input type="text" value={(watch('productSlugs') ?? []).join(', ')} onChange={(event) => setValue('productSlugs', normalizeProductSlugs(event.target.value), { shouldDirty: true })} placeholder="slug-do-produto, outro-slug" style={fieldStyle} />
-          </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Tags</label>
+          <input type="text" value={(watch('tags') ?? []).join(', ')} onChange={(event) => setValue('tags', normalizeTags(event.target.value), { shouldDirty: true })} placeholder="cachos, cabelo, rotina" style={fieldStyle} />
         </div>
 
         <div>
