@@ -1,5 +1,5 @@
 /* oxlint-disable react(incompatible-library) */
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -67,6 +67,47 @@ const sectionsToHtml = (sections: PostSection[] = []) => sections.map((section) 
   return `${heading}${paragraphs}${list}${quote}`
 }).join('')
 
+const isJsonObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const normalizeImportedContent = (content: string) => {
+  if (/<\/?[a-z][\s\S]*>/i.test(content)) return content
+
+  return content
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .join('')
+}
+
+const createArticleSample = () => ({
+  slug: 'rotina-de-cuidados-para-cachos',
+  title: 'Rotina de cuidados para cabelos cacheados',
+  seotitle: 'Rotina de cuidados para cabelos cacheados',
+  seodescription: 'Veja como montar uma rotina simples para cuidar dos cabelos cacheados.',
+  subtitle: 'Cuidados simples para valorizar seus cachos todos os dias',
+  category: 'Cuidados capilares',
+  categoryslug: 'cuidados-capilares',
+  tags: ['cachos', 'cuidados', 'rotina'],
+  author: 'Redação Universo dos Cachos',
+  date: todayISO(),
+  readingtime: 4,
+  featured: false,
+  excerpt: 'Aprenda uma rotina básica para manter os cabelos cacheados hidratados e definidos.',
+  image: '',
+  sections: [
+    {
+      heading: 'Comece pela lavagem',
+      paragraphs: ['Escolha produtos adequados ao seu tipo de fio e massageie o couro cabeludo com delicadeza.'],
+      list: [],
+      quote: '',
+    },
+  ],
+  published: false,
+  content: '<h2>Comece pela lavagem</h2><p>Escolha produtos adequados ao seu tipo de fio e massageie o couro cabeludo com delicadeza.</p><p>Finalize com condicionador e desembarace os fios com cuidado.</p>',
+})
+
 const readingTimeForContent = (sections: PostSection[] = [], content = '') => {
   const contentText = content.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ')
   const text = contentText.trim() ? contentText : sections.reduce((sum, section) => {
@@ -82,6 +123,7 @@ const readingTimeForContent = (sections: PostSection[] = [], content = '') => {
 export default function PostForm() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const importInputRef = useRef<HTMLInputElement>(null)
   const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors, isSubmitting } } = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
     defaultValues: {
@@ -195,6 +237,68 @@ export default function PostForm() {
     setValue('readingTime', readingTimeForContent(sectionsValue, contentValue), { shouldDirty: true })
   }
 
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget
+    const file = input.files?.[0]
+    if (!file) return
+
+    try {
+      const importedJson: unknown = JSON.parse(await file.text())
+      if (!isJsonObject(importedJson)) {
+        throw new Error('O arquivo deve conter um objeto JSON.')
+      }
+
+      const importedTitle = importedJson.title
+      const parsed = postSchema.safeParse({
+        slug: typeof importedJson.slug === 'string' && importedJson.slug.trim()
+          ? importedJson.slug
+          : typeof importedTitle === 'string' ? slugify(importedTitle) : '',
+        title: importedTitle,
+        seoTitle: importedJson.seotitle ?? '',
+        seoDescription: importedJson.seodescription ?? '',
+        subtitle: importedJson.subtitle ?? '',
+        category: importedJson.category ?? '',
+        categorySlug: importedJson.categoryslug ?? '',
+        tags: importedJson.tags ?? [],
+        author: importedJson.author ?? 'Redação Universo dos Cachos',
+        date: importedJson.date ?? todayISO(),
+        readingTime: importedJson.readingtime ?? 1,
+        featured: importedJson.featured ?? false,
+        excerpt: importedJson.excerpt ?? '',
+        content: typeof importedJson.content === 'string'
+          ? normalizeImportedContent(importedJson.content)
+          : importedJson.content,
+        image: importedJson.image ?? '',
+        sections: importedJson.sections ?? [createSection()],
+        published: importedJson.published ?? false,
+      })
+
+      if (!parsed.success) {
+        const details = parsed.error.issues
+          .map((issue) => `${issue.path.join('.') || 'artigo'}: ${issue.message}`)
+          .join('; ')
+        throw new Error(`Confira o JSON: ${details}`)
+      }
+
+      reset(parsed.data)
+      toast.success('Artigo importado. Revise os dados e salve para publicar as alterações.')
+    } catch (error) {
+      toast.error(`Erro ao importar artigo: ${error instanceof Error ? error.message : error}`)
+    } finally {
+      input.value = ''
+    }
+  }
+
+  const handleDownloadSample = () => {
+    const sample = JSON.stringify(createArticleSample(), null, 2)
+    const url = URL.createObjectURL(new Blob([sample], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'modelo-artigo-blog.json'
+    link.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 0)
+  }
+
   const onSubmit = async (formData: PostFormValues) => {
     try {
       const normalizedSections = (formData.sections ?? []).map((section) => ({
@@ -239,6 +343,18 @@ export default function PostForm() {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '999px', background: 'rgba(124,58,237,0.08)', color: '#6d28d9', fontSize: '12px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{id ? 'Edição' : 'Cadastro'}</div>
         <h1 style={{ fontSize: '34px', fontWeight: '800', color: '#111827', margin: '14px 0 8px', letterSpacing: '-0.04em' }}>{id ? 'Editar artigo' : 'Novo artigo'}</h1>
         <p style={{ color: '#6b7280', fontSize: '15px', margin: 0 }}>{id ? 'Atualize todo o conteúdo e os dados de SEO do artigo.' : 'Crie um artigo completo, com texto, SEO e seções do conteúdo.'}</p>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '20px', padding: '16px 18px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '16px' }}>
+        <div>
+          <strong style={{ color: '#374151', fontSize: '14px' }}>Importar artigo por JSON</strong>
+          <p style={{ color: '#6b7280', fontSize: '12px', margin: '4px 0 0' }}>Use os nomes de coluna do exemplo. O campo content aceita HTML ou texto simples. Revise antes de salvar.</p>
+        </div>
+        <input ref={importInputRef} type="file" accept=".json,application/json" onChange={handleImportFile} style={{ display: 'none' }} />
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button type="button" onClick={handleDownloadSample} style={{ padding: '10px 14px', background: '#fff', color: '#6d28d9', border: '1px solid #c4b5fd', borderRadius: '10px', cursor: 'pointer', fontWeight: '700' }}>Baixar exemplo JSON</button>
+          <button type="button" onClick={() => importInputRef.current?.click()} style={{ padding: '10px 14px', background: '#7c3aed', color: '#fff', border: '1px solid #7c3aed', borderRadius: '10px', cursor: 'pointer', fontWeight: '700' }}>Importar artigo JSON</button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'grid', gap: '22px', background: '#fff', borderRadius: '24px', padding: '28px', border: '1px solid rgba(148,163,184,0.2)', boxShadow: '0 18px 45px rgba(15,23,42,0.08)' }}>
