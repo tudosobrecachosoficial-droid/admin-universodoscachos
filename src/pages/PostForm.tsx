@@ -91,6 +91,7 @@ export default function PostForm() {
       seoDescription: '',
       subtitle: '',
       category: '',
+      categorySlug: '',
       tags: [],
       author: 'Redação Universo dos Cachos',
       date: todayISO(),
@@ -139,14 +140,15 @@ export default function PostForm() {
         reset({
           slug: String(post.slug ?? ''),
           title: String(post.title ?? ''),
-          seoTitle: String(post.seoTitle ?? ''),
-          seoDescription: String(post.seoDescription ?? ''),
+          seoTitle: String(post.seotitle ?? ''),
+          seoDescription: String(post.seodescription ?? ''),
           subtitle: String(post.subtitle ?? ''),
           category: String(post.category ?? ''),
+          categorySlug: String(post.categoryslug ?? ''),
           tags: Array.isArray(post.tags) ? post.tags.map((tag) => String(tag)) : [],
           author: String(post.author ?? authorValue),
           date: String(post.date ?? todayISO()),
-          readingTime: Number(post.readingTime) || readingTimeForContent(nextSections, nextContent),
+          readingTime: Number(post.readingtime) || readingTimeForContent(nextSections, nextContent),
           featured: Boolean(post.featured),
           excerpt: String(post.excerpt ?? ''),
           content: nextContent,
@@ -204,20 +206,23 @@ export default function PostForm() {
       const normalizedContent = formData.content.trim()
 
       const normalizedData = {
-        ...formData,
         slug: slugify(formData.slug),
+        title: formData.title.trim(),
+        seotitle: formData.seoTitle.trim(),
+        seodescription: formData.seoDescription.trim(),
+        subtitle: formData.subtitle.trim(),
         category: formData.category.trim(),
+        categoryslug: formData.categorySlug.trim() || slugify(formData.category || formData.title),
         tags: normalizeTags((formData.tags ?? []).join(', ')),
         author: formData.author.trim() || 'Redação Universo dos Cachos',
         date: formData.date || todayISO(),
-        readingTime: Number(formData.readingTime) || readingTimeForContent(normalizedSections, normalizedContent),
+        readingtime: Number(formData.readingTime) || readingTimeForContent(normalizedSections, normalizedContent),
+        featured: Boolean(formData.featured),
         excerpt: formData.excerpt.trim(),
-        content: normalizedContent,
-        seoTitle: formData.seoTitle.trim(),
-        seoDescription: formData.seoDescription.trim(),
-        subtitle: formData.subtitle.trim(),
+        image: formData.image.trim(),
         sections: normalizedSections,
         published: Boolean(formData.published),
+        content: normalizedContent,
       }
 
       await saveRecord('posts', normalizedData, id)
@@ -267,6 +272,11 @@ export default function PostForm() {
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Categoria</label>
             <input type="text" {...register('category')} placeholder="Beleza e rotina" style={fieldStyle} />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#374151', fontSize: '14px' }}>Slug da categoria</label>
+            <input type="text" {...register('categorySlug')} placeholder="beleza-e-rotina" style={fieldStyle} />
           </div>
 
           <div>
